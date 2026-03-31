@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Desafio do Teclado - Instrutora Emily</title>
+
+    <style>
+        :root {
+            --primary: #164194;
+            --secondary: #e84e0f;
+            --bg: #0f172a;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            text-align: center;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .caixa {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 25px 40px;
+            border-radius: 30px;
+            max-width: 750px;
+            width: 95%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border-top: 12px solid var(--primary);
+            position: relative;
+        }
+
+        #cronometro {
+            font-family: 'Courier New', Courier, monospace;
+            background: #f1f5f9;
+            color: var(--secondary);
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+            border: 2px solid #e2e8f0;
+            display: none;
+        }
+
+        #aviso-fase {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--primary);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 20px;
+            font-size: 24px;
+            font-weight: 900;
+            z-index: 100;
+            box-shadow: 0 0 100px rgba(0,0,0,0.5);
+            animation: pulse 0.5s infinite alternate;
+            white-space: nowrap;
+        }
+
+        @keyframes pulse {
+            from { transform: translate(-50%, -50%) scale(1); }
+            to { transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        #capa { display: flex; flex-direction: column; align-items: center; }
+        .logo { font-size: 80px; margin-bottom: 2px; }
+        h2 { font-size: 35px; color: var(--primary); margin: 10px 0; }
+        
+        .instrutora {
+            background: var(--primary);
+            color: white;
+            padding: 4px 15px;
+            border-radius: 50px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .regras-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .regras {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 5px solid var(--secondary);
+            text-align: left;
+            font-size: 15px;
+        }
+
+        .regras strong { color: var(--primary); display: block; margin-bottom: 5px; font-size: 15px; }
+        .regras ul { margin: 0; padding-left: 18px; }
+        .regras li { margin-bottom: 5px; }
+
+        .btn-acao {
+            background: linear-gradient(135deg, #e84e0f 0%, #f97316 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(232, 78, 15, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 10px; 
+        }
+
+        .btn-acao:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(232, 78, 15, 0.4); }
+
+        #jogo { display: none; }
+
+        #fase-header {
+            font-size: 15px;
+            font-weight: 900;
+            color: #64748b;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+
+        .painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
+        .vidas { color: #e92929; font-size: 20px; }
+        .pontos { color: var(--primary); font-size: 20px; }
+
+        .situacao {
+            font-size: 25px;
+            margin: 15px 0;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 20px;
+            border: 2px solid #e2e8f0;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #1e293b;
+            gap: 12px;
+        }
+
+        .barra-fundo {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        #progresso-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .status { font-size: 20px; font-weight: bold; height: 30px; }
+        .correto { color: #10b981; }
+        .erro { color: #ef4444; }
+
+        .cursor {
+            border-left: 3px solid var(--secondary);
+            animation: blink 0.7s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        @media (max-width: 600px) {
+            .regras-container { grid-template-columns: 1fr; }
+            .caixa { padding: 20px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="caixa">
+    <div id="aviso-fase">🚀 PRÓXIMA FASE!</div>
+
+    <div id="capa">
+        <div class="logo">⌨️</div>
+        <h2>Desafio do Teclado</h2>
+        <div class="instrutora">Desenvolvido por: Emily Moura</div>
+
+        <div class="regras-container">
+            <div class="regras">
+                <strong>📌 ETAPAS:</strong>
+                <ul>
+                    <li>Fase 1: Teclas Individuais</li>
+                    <li>Fase 2: Atalhos Combinados</li>
+                    <li>Fase 3: Símbolos com a tecla "Shift"</li>
+                    <li>Fase 4: Teste de Velocidade</li>
+                </ul>
+            </div>
+            <div class="regras">
+                <strong>⚠️ REGRAS:</strong>
+                <ul>
+                    <li>Fases 1, 2 e 3: Você tem só tem <b>3 vidas</b> ❤️</li>
+                    <li>Se as vidas acabarem, o jogo reinicia!</li>
+                    <li>Fase 4: Focada em tempo (não retira vidas).</li>
+                </ul>
+            </div>
+        </div>
+
+        <button class="btn-acao" onclick="iniciarJogo()">START</button>
+    </div>
+
+    <div id="jogo">
+        <div id="fase-header"></div>
+
+        <div class="painel">
+            <span class="pontos">SCORE: <span id="pontos-val">0</span></span>
+            <div id="cronometro">⏱️ 0.0s</div>
+            <span class="vidas" id="vidas-val">❤️❤️❤️</span>
+        </div>
+
+        <div class="barra-fundo"><div id="progresso-fill"></div></div>
+
+        <div class="situacao" id="situacao-txt"></div>
+        <div id="status-msg" class="status"></div>
+    </div>
+</div>
+
+<script>
+const teclasOrig = [
+    {key:"Escape", sit:"Você quer CANCELAR ou interromper uma tarefa."},
+    {key:"Shift", sit:"Tecla para símbolos superiores ou maiúsculas temporárias."},
+    {key:"Alt", sit:"Usada para acessar menus e alternar janelas."},
+    {key:"Tab", sit:"Usada para saltar entre campos ou criar parágrafos."},
+    {key:"Backspace", sit:"Você quer apagar o caractere à ESQUERDA do cursor."},
+    {key:"AltGraph", sit:"Tecla que insere o TERCEIRO SÍMBOLO (ex:², ³,º,ª)."},
+    {key:"Delete", sit:"Você quer apagar o caractere à DIREITA do cursor."},
+    {key:"CapsLock", sit:"Fixa o teclado para digitar apenas em MAIÚSCULAS."},
+    {key:"End", sit:"Leva o cursor imediatamente para o FIM da linha."}
+];
+
+const atalhosOrig = [
+    {ctrl:true, key:"s", sit:"Você quer SALVAR o documento atual."},
+    {ctrl:true, key:"c", sit:"Precisa COPIAR um trecho de texto selecionado."},
+    {ctrl:true, key:"x", sit:"Quer RECORTAR um item para mover de lugar."},
+    {ctrl:true, key:"v", sit:"Precisa COLAR o conteúdo que você copiou."},
+    {ctrl:true, key:"a", sit:"Deseja SELECIONAR TUDO o que está na tela."},
+    {ctrl:true, key:"z", sit:"Você errou e quer DESFAZER a última ação."},
+    {ctrl:true, key:"y", sit:"Você desfez algo, mas quer REFAZER agora."},
+    {ctrl:true, key:"t", sit:"No navegador, você deseja abrir uma NOVA GUIA."},
+    {alt:true, key:"Tab", sit:"Você quer ALTERNAR entre janelas abertas."}
+];
+
+const simbolosOrig = [
+    {shift:true, key:"!", sit:"Você quer inserir um ponto de EXCLAMAÇÃO."},
+    {shift:true, key:"%", sit:"Você quer inserir o símbolo de PORCENTAGEM."},
+    {shift:true, key:"@", sit:"Você quer inserir o símbolo de ARROBA."},
+    {shift:true, key:"#", sit:"Você quer inserir o símbolo de HASHTAG (#)."},
+    {shift:true, key:"&", sit:"Você quer inserir o símbolo 'E comercial' (&)."},
+    {shift:true, key:"?", sit:"Você quer inserir o ponto de INTERROGAÇÃO."},
+    {shift:true, key:":", sit:"Você quer inserir os DOIS PONTOS (:)."}
+];
+
+const frasesOrig = [
+    {texto: "O sistema operacional gerencia o hardware.", sit: "Frase 1 - A cada erro perde 2 pontos!"},
+    {texto: "Hardware é a parte física do computador e software é a parte lógica.", sit: "Frase 2 - Não esqueça os acentos!"},
+    {texto: "A Educação transforma vidas!", sit: "Frase 3 - Digite o mais rápido que puder!"},
+    {texto: "Atenção: o uso correto de vírgulas, pontos e acentos é essencial.", sit: "Frase 4 - Corra o tempo não espera!"}
+];
+
+let teclas=[], atalhos=[], simbolos=[], frases=[], fase=1, indice=0, vidas=3, pontos=0, ativo=false;
+let comandoPressionado = false; 
+let digitacaoAtual = "";
+let tempoInicioFrase = 0;
+let temposFase4 = [];
+let intervaloCronometro;
+
+function iniciarJogo(){
+    document.getElementById("capa").style.display="none";
+    document.getElementById("jogo").style.display="block";
+    document.getElementById("cronometro").style.display="none";
+    
+    teclas=[...teclasOrig].sort(()=>Math.random()-0.5);
+    atalhos=[...atalhosOrig].sort(()=>Math.random()-0.5);
+    simbolos=[...simbolosOrig].sort(()=>Math.random()-0.5);
+    frases=[...frasesOrig];
+    
+    fase=1; indice=0; vidas=3; pontos=0; ativo=true;
+    comandoPressionado = false;
+    digitacaoAtual = "";
+    temposFase4 = [];
+    pararCronometro();
+    document.getElementById("status-msg").textContent = "";
+    atualizar();
+}
+
+function atualizar(){
+    const headers = ["", "FASE 1 - TECLAS", "FASE 2 - ATALHOS", "FASE 3 - SÍMBOLOS", "FASE 4 - VELOCIDADE"];
+    document.getElementById("fase-header").textContent = headers[fase];
+    
+    const situacaoContainer = document.getElementById("situacao-txt");
+    let listaAtual = (fase === 1 ? teclas : (fase === 2 ? atalhos : (fase === 3 ? simbolos : frases)));
+    
+    if (fase < 4) {
+        situacaoContainer.textContent = listaAtual[indice].sit;
+        document.getElementById("vidas-val").style.opacity = "1";
+        document.getElementById("cronometro").style.display="none";
+    } else {
+        document.getElementById("vidas-val").style.opacity = "0.3";
+        document.getElementById("cronometro").style.display="block";
+        situacaoContainer.innerHTML = `
+            <div style="font-size: 13px; color: #e84e0f; font-weight: bold;">${listaAtual[indice].sit}</div>
+            <div style="font-family: monospace; font-size: 18px; background: #eee; padding: 12px; border-radius: 10px; width: 95%; color: #64748b; border: 1px dashed #ccc; line-height: 1.4;">
+                ${listaAtual[indice].texto}
+            </div>
+            <div style="font-family: monospace; font-size: 19px; margin-top: 8px; color: var(--primary); font-weight: bold;">
+                ${digitacaoAtual}<span class="cursor"></span>
+            </div>
+        `;
+    }
+
+    document.getElementById("vidas-val").textContent = "❤️".repeat(vidas) + "🖤".repeat(3 - vidas);
+    document.getElementById("pontos-val").textContent = pontos;
+
+    const totalDesafios = teclasOrig.length + atalhosOrig.length + simbolosOrig.length + frasesOrig.length;
+    let concluido = (fase === 1 ? indice : (fase === 2 ? teclas.length + indice : (fase === 3 ? teclas.length + atalhos.length + indice : teclas.length + atalhos.length + simbolos.length + indice)));
+    document.getElementById("progresso-fill").style.width = (concluido / totalDesafios * 100) + "%";
+}
+
+function iniciarCronometro() {
+    tempoInicioFrase = Date.now();
+    pararCronometro();
+    intervaloCronometro = setInterval(() => {
+        const tempoDecorrido = (Date.now() - tempoInicioFrase) / 1000;
+        document.getElementById("cronometro").textContent = `⏱️ ${tempoDecorrido.toFixed(1)}s`;
+    }, 100);
+}
+
+function pararCronometro() {
+    clearInterval(intervaloCronometro);
+}
+
+document.addEventListener("keydown", e => {
+    if(!ativo) return;
+    
+    const statusMsg = document.getElementById("status-msg");
+    let lista = (fase === 1 ? teclas : (fase === 2 ? atalhos : (fase === 3 ? simbolos : frases)));
+    const alvo = lista[indice];
+
+    if (fase === 4) {
+        if (["Control", "Alt", "AltGraph", "CapsLock", "Escape", "Shift"].includes(e.key)) return;
+        e.preventDefault();
+
+        if (e.key === "Backspace") {
+            digitacaoAtual = digitacaoAtual.slice(0, -1);
+        } else if (e.key.length === 1) {
+            const letraDigitada = e.key;
+            const proximaLetraCorreta = alvo.texto.charAt(digitacaoAtual.length);
+
+            if (letraDigitada === proximaLetraCorreta) {
+                digitacaoAtual += letraDigitada;
+                if (digitacaoAtual === alvo.texto) {
+                    pararCronometro();
+                    const tempoGasto = (Date.now() - tempoInicioFrase) / 1000;
+                    temposFase4.push(tempoGasto);
+                    processarResposta(true);
+                }
+            } else {
+                pontos = Math.max(0, pontos - 2);
+                statusMsg.textContent = "❌ TECLA ERRADA!";
+                statusMsg.className = "status erro";
+                setTimeout(() => statusMsg.textContent = "", 500);
+            }
+        }
+        atualizar();
+        return;
+    }
+
+    if(fase === 2){
+        e.preventDefault();
+        const apertouComandoCerto = (alvo.ctrl && e.key === "Control") || (alvo.alt && e.key === "Alt");
+        if (!comandoPressionado) {
+            if (apertouComandoCerto) { comandoPressionado = true; statusMsg.textContent = "⌨️ PRÓXIMA TECLA..."; return; }
+            else if (!["Control", "Alt", "Shift", "AltGraph"].includes(e.key)) processarResposta(false);
+        } else {
+            if (e.key.toLowerCase() === alvo.key.toLowerCase()) { comandoPressionado = false; processarResposta(true); }
+            else if (!["Control", "Alt", "Shift", "AltGraph"].includes(e.key)) { comandoPressionado = false; processarResposta(false); }
+        }
+    } 
+    else if (fase === 3) {
+        if (e.key === "Shift") return;
+        e.preventDefault();
+        if (e.shiftKey && e.key === alvo.key) processarResposta(true);
+        else processarResposta(false);
+    }
+    else {
+        const modificadores = ["Shift", "Control", "Alt", "CapsLock"];
+        if (modificadores.includes(e.key) && alvo.key !== e.key) return;
+        e.preventDefault();
+        const ehAltGr = (alvo.key === "AltGraph" && (e.key === "AltGraph" || e.key === "Alt"));
+        const teclaNormal = (e.key === alvo.key);
+        if (teclaNormal || ehAltGr) {
+            processarResposta(true);
+        } else {
+            processarResposta(false);
+        }
+    }
+});
+
+function processarResposta(acertou) {
+    const statusMsg = document.getElementById("status-msg");
+    if(acertou){
+        pontos += 10;
+        statusMsg.textContent = "✅ CORRETO!";
+        statusMsg.className = "status correto";
+        if (fase === 4) digitacaoAtual = "";
+        indice++;
+        setTimeout(next, 600);
+    } else {
+        vidas--;
+        pontos = Math.max(0, pontos - 5);
+        comandoPressionado = false;
+        statusMsg.textContent = "❌ INCORRETO!";
+        statusMsg.className = "status erro";
+        if(vidas <= 0) final(false);
+        else atualizar();
+    }
+}
+
+function mostrarAviso(texto) {
+    ativo = false;
+    pararCronometro();
+    const aviso = document.getElementById("aviso-fase");
+    aviso.textContent = texto;
+    aviso.style.display = "block";
+    setTimeout(() => { 
+        aviso.style.display = "none"; 
+        ativo = true; 
+        if(fase === 4) iniciarCronometro();
+        atualizar(); 
+    }, 1800);
+}
+
+function next(){
+    document.getElementById("status-msg").textContent = "";
+    if(fase === 1 && indice === teclas.length) { fase = 2; indice = 0; mostrarAviso("🚀 FASE 2: ATALHOS"); return; }
+    else if(fase === 2 && indice === atalhos.length) { fase = 3; indice = 0; mostrarAviso("✨ FASE 3: SÍMBOLOS"); return; }
+    else if(fase === 3 && indice === simbolos.length) { fase = 4; indice = 0; mostrarAviso("⌨️ FASE 4: VELOCIDADE"); return; }
+    else if(fase === 4 && indice === frases.length) { final(true); return; }
+    if(fase === 4) iniciarCronometro();
+    atualizar();
+}
+
+function final(terminouComSucesso){
+    ativo = false;
+    pararCronometro();
+    const situacao = document.getElementById("situacao-txt");
+    const totalMaximo = (teclasOrig.length + atalhosOrig.length + simbolosOrig.length + frasesOrig.length) * 10;
+    
+    let mediaVelocidade = 0;
+    if (temposFase4.length > 0) {
+        const soma = temposFase4.reduce((a, b) => a + b, 0);
+        mediaVelocidade = (soma / temposFase4.length).toFixed(2);
+    }
+
+    situacao.innerHTML = `
+        <div style="width: 100%;">
+            <div style="color: ${terminouComSucesso ? '#10b981' : '#ef4444'}; font-weight: 900; font-size: 28px; margin-bottom: 5px;">
+                ${terminouComSucesso ? '🏆 DESAFIO CONCLUÍDO!' : '💀 GAME OVER!'}
+            </div>
+            <div class="score-final" style="font-size:22px; color:var(--primary)">Score Final: ${pontos} / ${totalMaximo}</div>
+            ${terminouComSucesso ? `
+                <div style="background: #f1f5f9; padding: 12px; border-radius: 10px; margin-top: 10px;">
+                    <div style="color: #64748b; font-size: 14px;">Média de tempo por frase:</div>
+                    <div style="color: var(--secondary); font-size: 20px; font-weight: 900;">${mediaVelocidade} segundos</div>
+                </div>
+            ` : ''}
+            <button class="btn-acao" style="margin-top:15px" onclick="iniciarJogo()">RECOMEÇAR</button>
+        </div>
+    `;
+}
+</script>
+</body>
+</html>
