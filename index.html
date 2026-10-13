@@ -1,498 +1,214 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Desafio do Teclado</title>
-
-    <style>
-        :root {
-            --primary: #164194;
-            --secondary: #e84e0f;
-            --bg: #0f172a;
-            --white: #ffffff;
-        }
-
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-            text-align: center;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        .caixa {
-            background: rgba(255, 255, 255, 0.98);
-            padding: 25px 40px;
-            border-radius: 30px;
-            max-width: 750px;
-            width: 95%;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            border-top: 12px solid var(--primary);
-            position: relative;
-        }
-
-        #cronometro {
-            font-family: 'Courier New', Courier, monospace;
-            background: #f1f5f9;
-            color: var(--secondary);
-            padding: 5px 15px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 18px;
-            border: 2px solid #e2e8f0;
-            display: none;
-        }
-
-        #aviso-fase {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--primary);
-            color: white;
-            padding: 20px 40px;
-            border-radius: 20px;
-            font-size: 24px;
-            font-weight: 900;
-            z-index: 100;
-            box-shadow: 0 0 100px rgba(0,0,0,0.5);
-            animation: pulse 0.5s infinite alternate;
-            white-space: nowrap;
-        }
-
-        @keyframes pulse {
-            from { transform: translate(-50%, -50%) scale(1); }
-            to { transform: translate(-50%, -50%) scale(1.05); }
-        }
-
-        #capa { display: flex; flex-direction: column; align-items: center; }
-        .logo { font-size: 80px; margin-bottom: 2px; }
-        h2 { font-size: 35px; color: var(--primary); margin: 10px 0; }
-        
-        .instrutora {
-            background: var(--primary);
-            color: white;
-            padding: 4px 15px;
-            border-radius: 50px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-
-        .regras-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .regras {
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 15px;
-            border-left: 5px solid var(--secondary);
-            text-align: left;
-            font-size: 15px;
-        }
-
-        .regras strong { color: var(--primary); display: block; margin-bottom: 5px; font-size: 15px; }
-        .regras ul { margin: 0; padding-left: 18px; }
-        .regras li { margin-bottom: 5px; }
-
-        .btn-acao {
-            background: linear-gradient(135deg, #e84e0f 0%, #f97316 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            font-weight: 800;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(232, 78, 15, 0.3);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 10px; 
-        }
-
-        .btn-acao:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(232, 78, 15, 0.4); }
-
-        #jogo { display: none; }
-
-        #fase-header {
-            font-size: 15px;
-            font-weight: 900;
-            color: #64748b;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 5px;
-        }
-
-        .painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
-        .vidas { color: #e92929; font-size: 20px; }
-        .pontos { color: var(--primary); font-size: 20px; }
-
-        .situacao {
-            font-size: 25px;
-            margin: 15px 0;
-            padding: 25px;
-            background: #f8fafc;
-            border-radius: 20px;
-            border: 2px solid #e2e8f0;
-            min-height: 160px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #1e293b;
-            gap: 12px;
-        }
-
-        .barra-fundo {
-            width: 100%;
-            height: 10px;
-            background: #e2e8f0;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        #progresso-fill {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.5s;
-        }
-
-        .status { font-size: 20px; font-weight: bold; height: 30px; }
-        .correto { color: #10b981; }
-        .erro { color: #ef4444; }
-
-        .cursor {
-            border-left: 3px solid var(--secondary);
-            animation: blink 0.7s infinite;
-            margin-left: 2px;
-        }
-
-        @keyframes blink { 50% { opacity: 0; } }
-
-        @media (max-width: 600px) {
-            .regras-container { grid-template-columns: 1fr; }
-            .caixa { padding: 20px; }
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="caixa">
-    <div id="aviso-fase">🚀 PRÓXIMA FASE!</div>
-
-    <div id="capa">
-        <div class="logo">⌨️</div>
-        <h2>Desafio do Teclado</h2>
-        <div class="instrutora">Desenvolvido por: Emily Moura</div>
-
-        <div class="regras-container">
-            <div class="regras">
-                <strong>📌 ETAPAS:</strong>
-                <ul>
-                    <li>Fase 1: Teclas Individuais</li>
-                    <li>Fase 2: Atalhos Combinados</li>
-                    <li>Fase 3: Símbolos com a tecla "Shift"</li>
-                    <li>Fase 4: Teste de Velocidade</li>
-                </ul>
-            </div>
-            <div class="regras">
-                <strong>⚠️ REGRAS:</strong>
-                <ul>
-                    <li>Fases 1, 2 e 3: Você tem só tem <b>3 vidas</b> ❤️</li>
-                    <li>Se as vidas acabarem, o jogo reinicia!</li>
-                    <li>Fase 4: Focada em tempo (não retira vidas).</li>
-                </ul>
-            </div>
-        </div>
-
-        <button class="btn-acao" onclick="iniciarJogo()">START</button>
-    </div>
-
-    <div id="jogo">
-        <div id="fase-header"></div>
-
-        <div class="painel">
-            <span class="pontos">SCORE: <span id="pontos-val">0</span></span>
-            <div id="cronometro">⏱️ 0.0s</div>
-            <span class="vidas" id="vidas-val">❤️❤️❤️</span>
-        </div>
-
-        <div class="barra-fundo"><div id="progresso-fill"></div></div>
-
-        <div class="situacao" id="situacao-txt"></div>
-        <div id="status-msg" class="status"></div>
-    </div>
-</div>
-
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desafio do Teclado</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eaf4ff;--bgi:linear-gradient(135deg,#0a6cff 0%,#00b3ff 50%,#ff8a00 100%);--card:#fff;--ink:#0b2150;--mut:#3d5a96;--key:#ffe9cc;--keyb:#ff9a1f;--pk:#e85f00;--cy:#0a84ff;--ok:#00913f;--bad:#e0173c;--line:#bcd9ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07173f;--bgi:linear-gradient(135deg,#0a2a8a 0%,#0a6cff 55%,#ff8a00 100%);--card:#0f2566;--ink:#fff;--mut:#bcd4ff;--key:#1d46a8;--keyb:#061233;--pk:#f26200;--cy:#35c8ff;--ok:#2eea8b;--bad:#ff5a73;--line:#2a55c8}}
+:root[data-theme="dark"]{--bg:#07173f;--bgi:linear-gradient(135deg,#0a2a8a 0%,#0a6cff 55%,#ff8a00 100%);--card:#0f2566;--ink:#fff;--mut:#bcd4ff;--key:#1d46a8;--keyb:#061233;--pk:#f26200;--cy:#35c8ff;--ok:#2eea8b;--bad:#ff5a73;--line:#2a55c8}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);background-image:var(--bgi);background-attachment:fixed;color:var(--ink);font:400 18px/1.5 Fredoka,"Trebuchet MS",system-ui,sans-serif}
+main{max-width:800px;margin:0 auto;padding:14px}
+h1,.px{font-family:"Press Start 2P",monospace;line-height:1.4}h1{font-size:clamp(20px,5vw,32px);margin:.3em 0}h2{margin:.2em 0}
+.card{background:var(--card);border-radius:18px;padding:20px;border:2px solid var(--line);margin-bottom:12px}
+.btn{font:600 18px Fredoka,sans-serif;background:var(--key);color:var(--ink);border:2px solid var(--keyb);border-bottom-width:6px;border-radius:12px;padding:9px 18px;cursor:pointer;margin:4px 6px 4px 0}
+.btn:active{border-bottom-width:2px;transform:translateY(4px)}.btn.p{background:var(--pk);color:#fff;border-color:rgba(0,0,0,.35)}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--cy);outline-offset:2px}
+.btn[aria-pressed=true]{background:var(--cy);color:#001418}
+.keycap{display:inline-block;min-width:54px;text-align:center;background:var(--key);border:2px solid var(--keyb);border-bottom-width:6px;border-radius:10px;padding:2px 12px;font-weight:600}
+.big{font-size:clamp(26px,7vw,44px);font-weight:700;text-align:center;margin:12px 0;word-break:break-word}
+.sub{color:var(--mut);font-size:16px;text-align:center;margin:4px 0}.hint{color:var(--mut)}
+input[type=text],textarea{width:100%;font:600 26px Fredoka,monospace;padding:11px 14px;border-radius:12px;border:3px solid var(--keyb);background:var(--bg);color:var(--ink)}
+textarea{font-size:20px;min-height:90px}
+.hud{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:8px;font-weight:600}
+.hud .px{font-size:12px}.hearts{color:var(--bad);font-size:24px;letter-spacing:2px}.hearts i{font-style:normal;opacity:.2}.fire{color:var(--pk)}
+.bar{height:10px;background:var(--bg);border-radius:9px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;width:100%;background:var(--cy);transition:width .1s linear}
+.fb{min-height:30px;text-align:center;font-weight:700}.okc{color:var(--ok)}.noc{color:var(--bad)}
+.tgt{font:500 24px/1.6 "Courier New",monospace;background:var(--bg);padding:12px;border-radius:12px;margin:10px 0;word-break:break-word}
+.tgt .g{color:var(--ok)}.tgt .r{color:var(--bad);text-decoration:underline}
+.stats{display:flex;justify-content:space-around;text-align:center;font-weight:600}.clock{font:400 22px "Press Start 2P",monospace;color:var(--pk)}
+.tabs{display:flex;flex-wrap:wrap;margin-bottom:8px}
+table{width:100%;border-collapse:collapse}td,th{padding:7px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:17px}
+.vk{overflow-x:auto;margin-top:10px}.vk div{display:flex;gap:4px;margin-bottom:4px;min-width:520px}
+.vk b{flex:1;text-align:center;font:600 12px Fredoka,sans-serif;background:var(--key);border:1px solid var(--keyb);border-bottom-width:3px;border-radius:6px;padding:5px 0;color:var(--mut)}
+.vk b[data-f]{background:color-mix(in srgb,var(--f) 32%,var(--key))}.vk b[data-f="1"]{--f:#ff4d97}.vk b[data-f="2"]{--f:#ff9f1c}.vk b[data-f="3"]{--f:#2ecc71}.vk b[data-f="4"]{--f:#3b8cff}.vk b[data-f="5"]{--f:#a66bff}
+.lg{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.lg span{font-size:15px;font-weight:600;padding:3px 10px;border-radius:20px;background:color-mix(in srgb,var(--f) 35%,var(--key))}
+.vk b.on{background:var(--cy);color:#001418}.vk b.ok{background:var(--ok);color:#fff}.vk b.no{background:var(--bad);color:#fff}
+.shake{animation:sh .3s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@media(prefers-reduced-motion:reduce){.shake{animation:none}}
+.star{font-size:42px;color:var(--pk)}
+.trail{width:100%;height:auto;max-width:440px;display:block;margin:0 auto 8px}.trail .nd{fill:var(--key);stroke:var(--keyb);stroke-width:3}.trail .nd.d{fill:var(--ok);stroke:none}.trail .nd.c{fill:var(--pk);stroke:none}
+.trail .ic{font:600 20px Fredoka,sans-serif;text-anchor:middle;dominant-baseline:central;fill:var(--mut)}.trail .ic.d,.trail .ic.c{fill:#fff}.trail .lb{font:600 18px Fredoka,sans-serif;fill:var(--ink)}
+.trail .pth{fill:none;stroke:var(--keyb);stroke-width:8;stroke-linecap:round;stroke-dasharray:1 16}.trail .pth.d{stroke:var(--ok);stroke-dasharray:none}.mk{font-size:30px;transition:transform 1.2s ease}
+@media(prefers-reduced-motion:reduce){.mk{transition:none}}
+.ch{display:block;width:100%;text-align:left;margin:6px 0}.btn:disabled{opacity:.4;cursor:not-allowed}
+.card{box-shadow:0 6px 0 rgba(0,0,0,.2)}
+</style></head><body><main id="app"></main>
 <script>
-const teclasOrig = [
-    {key:"Escape", sit:"Você quer CANCELAR ou interromper uma tarefa."},
-    {key:"Shift", sit:"Tecla para símbolos superiores ou maiúsculas temporárias."},
-    {key:"Alt", sit:"Usada para acessar menus e alternar janelas."},
-    {key:"Tab", sit:"Usada para saltar entre campos ou criar parágrafos."},
-    {key:"Backspace", sit:"Você quer apagar o caractere à ESQUERDA do cursor."},
-    {key:"AltGraph", sit:"Tecla que insere o TERCEIRO SÍMBOLO (ex:², ³,º,ª)."},
-    {key:"Delete", sit:"Você quer apagar o caractere à DIREITA do cursor."},
-    {key:"CapsLock", sit:"Fixa o teclado para digitar apenas em MAIÚSCULAS."},
-    {key:"End", sit:"Leva o cursor imediatamente para o FIM da linha."}
-];
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sh=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+let G={},clean=()=>{},MUTE=false,AC;
+function snd(f,d=.12){if(MUTE)return;try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+function show(h){G.run=false;clean();clean=()=>{};app.innerHTML=h;window.scrollTo(0,0)}
+const VR=[[['Escape','Esc'],['Home','Home'],['End','End'],['Delete','Del'],['ArrowLeft','←'],['ArrowUp','↑'],['ArrowDown','↓'],['ArrowRight','→']],
+[...'1234567890'].map(c=>['Digit'+c,c]).concat([['Backspace','⌫',2]]),
+[['Tab','Tab',1.5],...[...'QWERTYUIOP'].map(c=>['Key'+c,c])],
+[['CapsLock','Caps',1.8],...[...'ASDFGHJKL'].map(c=>['Key'+c,c]),['Enter','Enter',2]],
+[['ShiftLeft','Shift',2.2],...[...'ZXCVBNM'].map(c=>['Key'+c,c]),['ShiftRight','Shift',2.2]],
+[['ControlLeft','Ctrl',1.5],['AltLeft','Alt',1.5],['Space','Espaço',6],['AltRight','AltGr',1.5],['ControlRight','Ctrl',1.5]]];
+const FG={};[[1,'Digit1 KeyQ KeyA KeyZ Tab CapsLock ShiftLeft ControlLeft Escape Digit0 KeyP Backspace Enter ShiftRight ControlRight'],[2,'Digit2 KeyW KeyS KeyX Digit9 KeyO KeyL'],[3,'Digit3 KeyE KeyD KeyC Digit8 KeyI KeyK'],[4,'Digit4 Digit5 KeyR KeyT KeyF KeyG KeyV KeyB Digit6 Digit7 KeyY KeyU KeyH KeyJ KeyN KeyM'],[5,'Space AltLeft AltRight']].forEach(a=>a[1].split(' ').forEach(c=>FG[c]=a[0]));
+const LEFT=new Set('Digit1 Digit2 Digit3 Digit4 Digit5 KeyQ KeyW KeyE KeyR KeyT KeyA KeyS KeyD KeyF KeyG KeyZ KeyX KeyC KeyV KeyB Tab CapsLock ShiftLeft ControlLeft Escape'.split(' '));
+const FN=['','mindinho','anelar','dedo médio','indicador','polegar'];
+const fingerOf=c=>FG[c]?FN[FG[c]]+(FG[c]==5?'':LEFT.has(c)?' esquerdo':' direito'):'';
+const LEG=`<div class="lg"><span style="--f:#ff4d97">Mindinho</span><span style="--f:#ff9f1c">Anelar</span><span style="--f:#2ecc71">Médio</span><span style="--f:#3b8cff">Indicador</span><span style="--f:#a66bff">Polegar</span></div>`;
+const vk=()=>`<div class="vk" aria-hidden="true">${VR.map(r=>`<div>${r.map(k=>`<b data-c="${k[0]}"${FG[k[0]]?` data-f="${FG[k[0]]}"`:''} style="flex:${k[2]||1}">${k[1]}</b>`).join('')}</div>`).join('')}</div>`;
+function flash(c,cl){document.querySelectorAll(`[data-c="${c}"]`).forEach(b=>{b.classList.add(cl);setTimeout(()=>b.classList.remove(cl),400)})}
+document.addEventListener('keydown',e=>flash(e.code,'on'));
+function upd(){const h=$('#hud');if(!h)return;const sp=PH[G.lvl]&&PH[G.lvl].mode=='speed';
+ h.innerHTML=`<span class="px">${G.score}/1000</span>${G.run?'<span>⏱ <span id="tm">0</span>s</span>':''}${G.streak>1&&!sp?`<span class="fire">🔥 x${G.streak}</span>`:''}${sp?'<span class="sub">sem vidas</span>':`<span class="hearts" aria-label="${G.lives} vidas">${'♥'.repeat(G.lives)}<i>${'♥'.repeat(3-G.lives)}</i></span>`}`}
+const hud=()=>`<div class="hud" id="hud"></div>`;
+function lose(){G.lives--;G.streak=0;upd();if(G.lives<=0){clean();setTimeout(over,900);return true}return false}
+const rank=add=>{let r=[];try{r=JSON.parse(localStorage.getItem('dt2')||'[]')}catch(e){}
+ if(add){r.push(add);r.sort((a,b)=>b.s-a.s);r=r.slice(0,8);try{localStorage.setItem('dt2',JSON.stringify(r))}catch(e){}}return r};
 
-const atalhosOrig = [
-    {ctrl:true, key:"s", sit:"Você quer SALVAR o documento atual."},
-    {ctrl:true, key:"c", sit:"Precisa COPIAR um trecho de texto selecionado."},
-    {ctrl:true, key:"x", sit:"Quer RECORTAR um item para mover de lugar."},
-    {ctrl:true, key:"v", sit:"Precisa COLAR o conteúdo que você copiou."},
-    {ctrl:true, key:"a", sit:"Deseja SELECIONAR TUDO o que está na tela."},
-    {ctrl:true, key:"z", sit:"Você errou e quer DESFAZER a última ação."},
-    {ctrl:true, key:"y", sit:"Você desfez algo, mas quer REFAZER agora."},
-    {ctrl:true, key:"t", sit:"No navegador, você deseja abrir uma NOVA GUIA."},
-    {alt:true, key:"Tab", sit:"Você quer ALTERNAR entre janelas abertas."}
-];
+/* ---------- DADOS ---------- */
+const KEYS={Backspace:['Backspace (⌫)','Apaga a letra antes do cursor.'],Delete:['Delete','Apaga a letra depois do cursor.'],Enter:['Enter','Pula para a próxima linha ou confirma.'],Tab:['Tab','Salta entre campos e cria parágrafos.'],Escape:['Esc','Cancela ou sai de algo.'],CapsLock:['Caps Lock','Trava as letras MAIÚSCULAS.'],Shift:['Shift','Segure para letra maiúscula ou para o símbolo de cima da tecla.'],Control:['Ctrl','Segure junto com uma letra para fazer atalhos.'],Alt:['Alt','Usada em atalhos (como Alt + Tab) e para abrir menus.'],AltGraph:['AltGr','Insere o terceiro símbolo de uma tecla.'],Meta:['Tecla Windows','Abre o menu Iniciar.'],' ':['Espaço','Dá um espaço entre as palavras.'],ArrowLeft:['Seta ←','Move o cursor para a esquerda.'],ArrowRight:['Seta →','Move o cursor para a direita.'],ArrowUp:['Seta ↑','Move o cursor para cima.'],ArrowDown:['Seta ↓','Move o cursor para baixo.'],Home:['Home','Vai para o começo da linha.'],End:['End','Vai para o fim da linha.'],Dead:['Tecla de acento','Aperte o acento, solte, e depois a vogal. Para o acento sozinho: acento + Espaço.']};
+function info(e){const k=e.key;if(KEYS[k])return KEYS[k];if(/^F\d+$/.test(k))return [k,'Tecla de função. F1 ajuda, F5 atualiza, F11 tela cheia.'];if(/^\d$/.test(k))return [k,'Número. Com Shift vira o símbolo de cima.'];if(/^[a-zçA-ZÇ]$/.test(k))return [k.toUpperCase(),'Letra. Com Shift (ou Caps Lock) fica maiúscula.'];return [k,'Símbolo. Veja se precisa de Shift ou AltGr.']}
+const SC=[['Ctrl + C','Copiar'],['Ctrl + V','Colar'],['Ctrl + X','Recortar'],['Ctrl + Z','Desfazer'],['Ctrl + Y','Refazer'],['Ctrl + A','Selecionar tudo'],['Ctrl + S','Salvar'],['Ctrl + P','Imprimir'],['Ctrl + F','Localizar na página'],['Ctrl + B','Negrito'],['Ctrl + U','Sublinhado'],['Alt + Tab','Trocar de janela']];
+const AC_=[['Agudo','á é í ó ú','Tecla ´ (ao lado do P), depois a vogal'],['Crase','à','Shift + tecla ´, depois o a'],['Til','ã õ','Tecla ~ (ao lado da ´), depois a ou o'],['Circunflexo','â ê ô','Shift + tecla ~, depois a vogal'],['Trema','ü','Shift + 6, depois o u'],['Cedilha','ç','Tecla Ç (ao lado do L)'],['Acento sozinho','´ ~ ^','Aperte o acento e depois Espaço']];
+const mk=a=>a.map(x=>({q:x[0],k:x[1],m:x[2]}));
+const PH=[
+{id:'tecla',nome:'Teclas individuais',mode:'key',n:10,info:'Leia o que a tecla faz e aperte ela no teclado. Você tem 30 segundos por pergunta.',tip:'O teclado na tela mostra onde você apertou. Verde = acertou, vermelho = errou.',items:mk([['Apaga a letra que está antes do cursor','Backspace'],['Apaga a letra que está depois do cursor','Delete'],['Pula para a próxima linha','Enter'],['Cancela ou sai de algo','Escape'],['Trava as letras maiúsculas','CapsLock'],['Faz um espaço entre as palavras',' '],['Salta entre campos e cria parágrafos','Tab'],['Segure para fazer letra maiúscula','Shift'],['Usada em atalhos e para abrir menus','Alt'],['Insere o terceiro símbolo de uma tecla','AltGraph']])},
+{id:'atalho',nome:'Atalhos combinados',mode:'key',n:10,info:'Segure Ctrl e aperte a letra do atalho pedido. Em algumas perguntas você escolhe a alternativa certa.',tip:'Nas perguntas de alternativa, clique na resposta ou aperte o número dela (1 a 4).',items:mk([['Copiar','c'],['Colar','v'],['Recortar','x'],['Desfazer','z'],['Refazer','y'],['Selecionar tudo','a'],['Salvar','s'],['Imprimir','p'],['Localizar','f'],['Negrito','b'],['Sublinhado','u']].map(a=>['Atalho para: '+a[0],a[1]])),mc:[{q:'Qual atalho fecha a aba atual do navegador?',a:'Ctrl + W',o:['Ctrl + W','Ctrl + T','Ctrl + N','Ctrl + P']},{q:'Qual atalho abre uma nova aba?',a:'Ctrl + T',o:['Ctrl + T','Ctrl + W','Ctrl + Y','Ctrl + B']},{q:'Qual atalho abre uma nova janela?',a:'Ctrl + N',o:['Ctrl + N','Ctrl + S','Ctrl + U','Ctrl + W']},{q:'Qual atalho fecha a janela ou o programa que está aberto?',a:'Alt + F4',o:['Alt + F4','Alt + Tab','Ctrl + Z','Ctrl + A']},{q:'Qual atalho reabre a última aba que foi fechada?',a:'Ctrl + Shift + T',o:['Ctrl + Shift + T','Ctrl + T','Ctrl + Z','Ctrl + Shift + W']}]},
+{id:'simbolo',nome:'Símbolos com Shift',mode:'key',time:30,n:10,info:'Aperte o símbolo pedido. Segure Shift e aperte a tecla certa.',tip:'Shift + número: 1 é !, 2 é @, 3 é #, 4 é $, 5 é %, 7 é &, 8 é *, 9 é ( e 0 é ).',items:mk([...'!@#$%&*()_+":<>'].map(c=>['Digite o símbolo:  '+c,c]))},
+{id:'acento',nome:'Acentos',mode:'text',time:30,n:10,info:'Digite a palavra igualzinha, com os acentos. Acertou, passa sozinho. Enter confirma.',tip:'Acento primeiro, vogal depois: ´ + a = á. Para ç use a tecla Ç.',items:['avó','você','coração','açúcar','música','pássaro','café','irmã','lâmpada','ônibus','João','maçã','história','país','também','árvore','ações','pão']},
+{id:'veloc',nome:'Teste de velocidade',mode:'speed',info:'Digite 5 frases sobre informática o mais rápido que conseguir. O cronômetro conta o seu tempo. Aqui não há vidas, mas cada erro, mesmo corrigido, tira 2 pontos.',tip:'Para avançar, a frase precisa ficar igualzinha. Corrija os erros com o Backspace.'}];
+const SENT=['O hardware é a parte física do computador.','O software é o conjunto de programas que fazem a máquina funcionar.','O processador é o cérebro do computador.','A memória RAM guarda os dados que estão em uso.','O disco rígido armazena arquivos e programas.','A placa-mãe liga todos os componentes da máquina.','O ENIAC foi um dos primeiros computadores eletrônicos do mundo.','O ENIAC era enorme e ocupava uma sala inteira.','O computador desktop fica fixo sobre a mesa.','O computador portátil pode ser levado para qualquer lugar.','O mainframe é um computador gigante usado por grandes empresas.','O sistema operacional controla o hardware e os programas.','O teclado e o mouse são dispositivos de entrada.','O monitor e a impressora são dispositivos de saída.'];
+const qmax=n=>{let s=0;for(let k=0;k<n;k++)s+=Math.round(100*(1+Math.min(k,5)*.2));return s};
+const MAX=()=>PH.reduce((a,L)=>a+(L.mode=='speed'?900:qmax(L.n))+150,0);
 
-const simbolosOrig = [
-    {shift:true, key:"!", sit:"Você quer inserir um ponto de EXCLAMAÇÃO."},
-    {shift:true, key:"%", sit:"Você quer inserir o símbolo de PORCENTAGEM."},
-    {shift:true, key:"@", sit:"Você quer inserir o símbolo de ARROBA."},
-    {shift:true, key:"#", sit:"Você quer inserir o símbolo de HASHTAG (#)."},
-    {shift:true, key:"&", sit:"Você quer inserir o símbolo 'E comercial' (&)."},
-    {shift:true, key:"?", sit:"Você quer inserir o ponto de INTERROGAÇÃO."},
-    {shift:true, key:":", sit:"Você quer inserir os DOIS PONTOS (:)."}
-];
+/* ---------- TELAS ---------- */
+function home(){const r=rank();
+ show(`<div class="card"><p class="sub" style="text-align:left">⌨️ Desenvolvido por: Emily Moura</p><h1>Desafio do Teclado</h1>
+ <p class="hint">5 fases: teclas, atalhos, símbolos, acentos e velocidade. Você tem <b>3 vidas</b> ❤️ que seguem com você pela trilha (só a fase de velocidade não tem vidas). Se elas acabarem, o jogo recomeça do início!</p>
+ <p class="px" style="font-size:14px;color:var(--pk)">🏆 Pontuação máxima: 1000 pontos</p>
+ <p><label for="nm">Seu nome</label><input type="text" id="nm" maxlength="20" autocomplete="off" value="${esc(G.name||'')}"><span class="fb noc" id="ne" aria-live="polite"></span></p>
+ <button class="btn p" id="go">START</button><button class="btn" id="ln">Aprender primeiro</button><button class="btn" id="mu" aria-pressed="${MUTE}">Som: ${MUTE?'desligado':'ligado'}</button></div>
+ ${r.length?`<div class="card"><h2>Melhores pontuações</h2><table>${r.map((x,i)=>`<tr><td>${i+1}º</td><td>${esc(x.n)}</td><td>${x.s} pts</td></tr>`).join('')}</table><p class="sub">Ranking salvo neste computador.</p></div>`:''}`);
+ $('#nm').oninput=e=>{G.name=e.target.value.trim()};
+ $('#go').onclick=()=>{G.name=$('#nm').value.trim();if(!G.name){$('#ne').textContent='Digite seu nome para começar!';$('#nm').focus();return}newGame()};
+ $('#ln').onclick=()=>{G.name=$('#nm').value.trim();learn('k')};$('#mu').onclick=()=>{MUTE=!MUTE;home()};
+}
+function learn(t){
+ const tab=(id,l)=>`<button class="btn" aria-pressed="${t==id}" data-t="${id}">${l}</button>`;let b='';
+ if(t=='k')b=`<div class="big" id="kc"><span class="keycap">?</span></div><p class="fb" id="kn">Aperte qualquer tecla do seu teclado</p><p class="sub" id="kd">Vamos descobrir o que ela faz.</p>${vk()}`;
+ if(t=='a')b=`<table>${SC.map(s=>`<tr><td><span class="keycap">${s[0]}</span></td><td>${s[1]}</td></tr>`).join('')}</table>`;
+ if(t=='d')b=`<p class="hint">Cada cor é um dedo. A mão esquerda fica em <b>A S D F</b> e a direita em <b>J K L Ç</b>. Procure a marquinha nas teclas <b>F</b> e <b>J</b>: é onde os indicadores descansam. Os polegares ficam no espaço.</p>${LEG}<p class="fb" id="dk">Aperte uma tecla para ver qual dedo usar</p>${vk()}`;
+ if(t=='c')b=`<p class="hint">Teclado ABNT2 (padrão do Brasil). Acento primeiro, letra depois!</p><table>${AC_.map(s=>`<tr><td><b>${s[0]}</b></td><td style="font-size:22px">${s[1]}</td><td>${s[2]}</td></tr>`).join('')}</table><p><label for="pr">Pratique aqui:</label><textarea id="pr" spellcheck="false" placeholder="Digite: avó, você, coração, irmã..."></textarea></p>`;
+ show(`<div class="card"><h2>Aprender</h2><div class="tabs">${tab('k','Teclas')}${tab('a','Atalhos')}${tab('c','Acentos')}${tab('d','Dedos')}</div>${b}<button class="btn" id="bk">Voltar</button><button class="btn p" id="go">START</button></div>`);
+ document.querySelectorAll('[data-t]').forEach(x=>x.onclick=()=>learn(x.dataset.t));
+ $('#bk').onclick=home;$('#go').onclick=()=>G.name?newGame():home();
+ if(t=='d'){const f=e=>{e.preventDefault();const g=fingerOf(e.code);$('#dk').textContent=g?'Use o '+g+' ('+(e.key==' '?'Espaço':e.key)+')':'Essa tecla não tem dedo marcado no desenho.'};
+  document.addEventListener('keydown',f);clean=()=>document.removeEventListener('keydown',f)}
+ if(t=='k'){const f=e=>{e.preventDefault();const i=info(e);$('#kc').innerHTML=`<span class="keycap">${esc(e.key==' '?'Espaço':e.key)}</span>`;$('#kn').textContent=i[0];$('#kd').textContent=i[1]};
+  document.addEventListener('keydown',f);clean=()=>document.removeEventListener('keydown',f)}
+}
+function newGame(){G.lvl=0;G.lives=3;G.score=0;G.streak=0;G.prev=0;G.res=[];G.miss={};G.missK={};intro()}
+const TR=[['Teclas','⌫'],['Atalhos','Ctrl'],['Símbolos','@'],['Acentos','á'],['Velocidade','⚡'],['Fim','🏆']],TX=[90,300,100,300,100,250],TY=i=>50+78*i;
+function intro(){G.run=false;const L=PH[G.lvl],end=G.lvl>=PH.length,p=G.prev??G.lvl;let d='';
+ for(let i=0;i<5;i++){const y0=TY(i),y1=TY(i+1),m=(y0+y1)/2;d+=`<path class="pth ${i<G.lvl?'d':''}" d="M${TX[i]} ${y0}C${TX[i]} ${m} ${TX[i+1]} ${m} ${TX[i+1]} ${y1}"/>`}
+ const nodes=TR.map((t,i)=>{const c=i<G.lvl?'d':i==G.lvl?'c':'',x=TX[i],y=TY(i),r=x<200;
+  return `<circle class="nd ${c}" cx="${x}" cy="${y}" r="30"/><text class="ic ${c}" x="${x}" y="${y}">${c=='d'?'✓':t[1]}</text><text class="lb" x="${r?x+42:x-42}" y="${y}" text-anchor="${r?'start':'end'}" dominant-baseline="central">${t[0]}</text>`}).join('');
+ const at=i=>`translate(${TX[i]}px,${TY(i)-42}px)`;
+ show(`<div class="card">${hud()}<svg class="trail" viewBox="0 0 400 470" role="img" aria-label="Trilha de fases">${d}${nodes}<text class="mk" id="mk" text-anchor="middle" style="transform:${at(Math.min(p,5))}">⌨️</text></svg>
+ ${end?`<h2>Trilha completa! 🏆</h2><button class="btn p" id="st">Ver resultado final</button>`:`<p class="px" style="font-size:13px">FASE ${G.lvl+1} DE ${PH.length}</p><h2>${L.nome}</h2><p>${L.info}</p><p class="hint">Dica: ${L.tip}</p><p class="sub">${L.mode=='speed'?'Nesta fase não há vidas: só você, o teclado e o cronômetro!':'Responda rápido para ganhar mais pontos: quanto antes acertar, melhor. Cada erro tira 5 pontos. Você segue com as vidas que tem agora.'}</p><button class="btn p" id="st">Começar fase</button>`}</div>`);upd();
+ setTimeout(()=>{$('#mk').style.transform=at(Math.min(G.lvl,5))},120);
+ $('#st').onclick=()=>end?final():L.mode=='speed'?runSpeed():runQ(L);
+}
+function done(pts,msg){const last=G.lvl==PH.length-1;G.res.push([PH[G.lvl].nome,pts]);snd(880,.25);
+ show(`<div class="card">${hud()}<h2>${last?'Última fase concluída! 🏆':'🚀 PRÓXIMA FASE!'}</h2><p class="big">+${pts} pts</p><p class="sub">${msg||''}</p>${last?'':`<p class="sub">Você mantém ${G.lives} ${G.lives==1?'vida':'vidas'}: ${'♥'.repeat(G.lives)}</p>`}<button class="btn p" id="nx">Ver a trilha</button></div>`);upd();
+ $('#nx').onclick=()=>{G.prev=G.lvl;G.lvl++;G.streak=0;intro()};
+}
+const META=800;
+function missHTML(){const by={};Object.entries(G.miss||{}).forEach(([k,n])=>{const i=k.indexOf('|');(by[k.slice(0,i)]=by[k.slice(0,i)]||[]).push([k.slice(i+1),n])});
+ const kk=Object.entries(G.missK||{}).sort((a,b)=>b[1]-a[1]).slice(0,6);
+ let h=Object.entries(by).map(([p,a])=>`<tr><td><b>${esc(p)}</b></td><td>${a.sort((x,y)=>y[1]-x[1]).map(x=>esc(x[0])+(x[1]>1?' ('+x[1]+'x)':'')).join(', ')}</td></tr>`).join('');
+ if(kk.length)h+=`<tr><td><b>Digitação</b></td><td>Letras e sinais que mais errou: ${kk.map(x=>esc(x[0])+' ('+x[1]+'x)').join(', ')}</td></tr>`;
+ return h?`<table>${h}</table><p class="sub">Treine isso antes de jogar de novo!</p>`:'<p class="sub">Você não errou nenhuma tecla desta vez! 🎉</p>'}
+function over(){snd(150,.5);
+ show(`<div class="card" style="text-align:center"><div style="font-size:84px;line-height:1.1" aria-hidden="true">😅</div><h2>Ixi...</h2><p class="big" style="font-size:clamp(22px,5vw,32px)">Pelo jeito você precisa treinar mais, então vamos recomeçar!</p><p class="sub">Você fez ${G.score} pontos até aqui. A trilha volta para o começo.</p><button class="btn p" id="rs">Recomeçar</button><button class="btn" id="mn">Menu</button></div>
+ <div class="card"><h2>O que treinar</h2>${missHTML()}</div>`);
+ $('#rs').onclick=newGame;$('#mn').onclick=home;
+}
+function final(){const st=G.score>=800?3:G.score>=600?2:1;rank({n:G.name,s:G.score});
+ const ok=G.score>=META,d=new Date().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}),falta=META-G.score;
+ const txt=`Desafio do Teclado\nAluno: ${G.name}\nPontuação: ${G.score}/1000\nData: ${d}\n${ok?'Meta de '+META+' pontos atingida':'Faltaram '+falta+' pontos para a meta de '+META}`;
+ const m=['Bom começo! Treine mais um pouquinho e você chega lá.','Muito bem! Você já domina boa parte do teclado.','Incrível! Você é mesmo um mestre do teclado!'][st-1];
+ show(`<div class="card"><h1>Parabéns, ${esc(G.name)}!</h1><div class="star">${'★'.repeat(st)}${'☆'.repeat(3-st)}</div><p class="big">${G.score} / 1000 pts</p>
 
-const frasesOrig = [
-    {texto: "O sistema operacional gerencia o hardware.", sit: "Frase 1 - A cada erro perde 2 pontos!"},
-    {texto: "Hardware é a parte física do computador e software é a parte lógica.", sit: "Frase 2 - Não esqueça os acentos!"},
-    {texto: "A Educação transforma vidas!", sit: "Frase 3 - Digite o mais rápido que puder!"},
-    {texto: "Atenção: o uso correto de vírgulas, pontos e acentos é essencial.", sit: "Frase 4 - Corra o tempo não espera!"}
-];
+ <table>${G.res.map(x=>`<tr><td>${x[0]}</td><td>${x[1]} pts</td></tr>`).join('')}</table></div>
 
-let teclas=[], atalhos=[], simbolos=[], frases=[], fase=1, indice=0, vidas=3, pontos=0, ativo=false;
-let comandoPressionado = false; 
-let digitacaoAtual = "";
-let tempoInicioFrase = 0;
-let temposFase4 = [];
-let intervaloCronometro;
-
-function iniciarJogo(){
-    document.getElementById("capa").style.display="none";
-    document.getElementById("jogo").style.display="block";
-    document.getElementById("cronometro").style.display="none";
-    
-    teclas=[...teclasOrig].sort(()=>Math.random()-0.5);
-    atalhos=[...atalhosOrig].sort(()=>Math.random()-0.5);
-    simbolos=[...simbolosOrig].sort(()=>Math.random()-0.5);
-    frases=[...frasesOrig];
-    
-    fase=1; indice=0; vidas=3; pontos=0; ativo=true;
-    comandoPressionado = false;
-    digitacaoAtual = "";
-    temposFase4 = [];
-    pararCronometro();
-    document.getElementById("status-msg").textContent = "";
-    atualizar();
+ <div class="card"><h2>O que treinar</h2>${missHTML()}</div>
+ <p><button class="btn p" id="rs">Jogar de novo</button><button class="btn" id="mn">Menu e ranking</button></p>`);
+ $('#rs').onclick=newGame;$('#mn').onclick=home;
 }
 
-function atualizar(){
-    const headers = ["", "FASE 1 - TECLAS", "FASE 2 - ATALHOS", "FASE 3 - SÍMBOLOS", "FASE 4 - VELOCIDADE"];
-    document.getElementById("fase-header").textContent = headers[fase];
-    
-    const situacaoContainer = document.getElementById("situacao-txt");
-    let listaAtual = (fase === 1 ? teclas : (fase === 2 ? atalhos : (fase === 3 ? simbolos : frases)));
-    
-    if (fase < 4) {
-        situacaoContainer.textContent = listaAtual[indice].sit;
-        document.getElementById("vidas-val").style.opacity = "1";
-        document.getElementById("cronometro").style.display="none";
-    } else {
-        document.getElementById("vidas-val").style.opacity = "0.3";
-        document.getElementById("cronometro").style.display="block";
-        situacaoContainer.innerHTML = `
-            <div style="font-size: 13px; color: #e84e0f; font-weight: bold;">${listaAtual[indice].sit}</div>
-            <div style="font-family: monospace; font-size: 18px; background: #eee; padding: 12px; border-radius: 10px; width: 95%; color: #64748b; border: 1px dashed #ccc; line-height: 1.4;">
-                ${listaAtual[indice].texto}
-            </div>
-            <div style="font-family: monospace; font-size: 19px; margin-top: 8px; color: var(--primary); font-weight: bold;">
-                ${digitacaoAtual}<span class="cursor"></span>
-            </div>
-        `;
-    }
-
-    document.getElementById("vidas-val").textContent = "❤️".repeat(vidas) + "🖤".repeat(3 - vidas);
-    document.getElementById("pontos-val").textContent = pontos;
-
-    const totalDesafios = teclasOrig.length + atalhosOrig.length + simbolosOrig.length + frasesOrig.length;
-    let concluido = (fase === 1 ? indice : (fase === 2 ? teclas.length + indice : (fase === 3 ? teclas.length + atalhos.length + indice : teclas.length + atalhos.length + simbolos.length + indice)));
-    document.getElementById("progresso-fill").style.width = (concluido / totalDesafios * 100) + "%";
+/* ---------- FASES COM PERGUNTAS (30 s cada) ---------- */
+function runQ(L){
+ const T=30,base=L.mc?sh(L.items).slice(0,L.n-L.mc.length).concat(L.mc):sh(L.items).slice(0,L.n),items=sh(base),PQ=200/L.n;let i=0,pts=0,lock=true,left=T,tmr,it;
+ show(`<div class="card">${hud()}<p class="sub" id="pg"></p><div id="q"></div><div class="bar"><i id="bar"></i></div><p class="fb" id="fb" aria-live="polite"></p>${vk()}</div>`);G.run=true;upd();
+ const fb=(m,c)=>{$('#fb').className='fb '+c;$('#fb').textContent=m};
+ const lab=()=>L.id=='tecla'?(KEYS[it.k]||[it.k])[0]:L.id=='atalho'?(it.o?it.a:'Ctrl + '+it.k.toUpperCase()+' ('+it.q.replace('Atalho para: ','')+')'):L.id=='simbolo'?'Símbolo '+it.k:it;
+ function rec(){const k=L.nome+'|'+lab();G.miss[k]=(G.miss[k]||0)+1}
+ function pick(b){if(lock)return;if(b.dataset.o==it.a)hit();else{b.disabled=true;wrong('Não é essa. Tente de novo!')}}
+ function next(){if(i>=items.length)return done(pts,'Fase completa!');
+  it=items[i];lock=false;left=T;fb('','');$('#pg').textContent=`Pergunta ${i+1} de ${items.length}`;
+  if(L.mode=='text'){$('#q').innerHTML=`<div class="big">${esc(it)}</div><input type="text" id="inp" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Digite aqui">`;
+   const inp=$('#inp');inp.focus();inp.onpaste=e=>e.preventDefault();
+   inp.oninput=e=>{if(!lock&&!e.isComposing&&inp.value.normalize('NFC')===it)hit()};
+   inp.onkeydown=e=>{if(e.key=='Enter'&&!lock&&inp.value.normalize('NFC')!==it){wrong('Ainda não está igual. Confira os acentos!');inp.value=''}}}
+  else if(it.o){$('#q').innerHTML=`<div class="big" style="font-size:clamp(22px,5vw,32px)">${esc(it.q)}</div><div>${sh(it.o).map((o,n)=>`<button class="btn ch" data-o="${esc(o)}">${n+1}. ${esc(o)}</button>`).join('')}</div><p class="sub">Escolha a alternativa certa (clique ou aperte 1 a 4)</p>`;
+   document.querySelectorAll('.ch').forEach(b=>b.onclick=()=>pick(b))}
+  else $('#q').innerHTML=`<div class="big">${esc(it.q)}</div><p class="sub">${L.id=='atalho'?'Segure Ctrl e aperte a letra':L.id=='simbolo'?'Use Shift quando precisar':'Aperte a tecla no teclado'}</p>`}
+ function hit(){lock=true;G.streak++;const p=10+Math.round(10*Math.max(0,left)/T);pts+=p;G.score+=p;upd();snd(660);fb('Muito bem! +'+p,'okc');i++;setTimeout(next,800)}
+ function wrong(m){if(lock)return;lock=true;rec();snd(180,.2);const d=Math.min(5,pts);pts-=d;G.score-=d;upd();fb(m+(d?' −'+d+' pts':''),'noc');app.firstElementChild.classList.add('shake');setTimeout(()=>app.firstElementChild&&app.firstElementChild.classList.remove('shake'),350);
+  if(lose())return;setTimeout(()=>lock=false,500)}
+ tmr=setInterval(()=>{if(lock)return;left-=.1;$('#bar').style.width=Math.max(0,left/T*100)+'%';const tm=$('#tm');if(tm)tm.textContent=Math.ceil(Math.max(0,left));
+  if(left<=0){lock=true;rec();snd(180,.2);fb('Tempo esgotado!','noc');if(lose())return;i++;setTimeout(next,1000)}},100);
+ const kd=e=>{if(L.mode!='key'||lock||e.repeat)return;let ok;
+  if(it.o){const b=document.querySelectorAll('.ch')[parseInt(e.key)-1];if(b&&!b.disabled)pick(b);return}
+  if(L.id=='atalho'){if(!(e.ctrlKey||e.metaKey)||['Control','Meta'].includes(e.key))return;e.preventDefault();ok=!e.shiftKey&&e.key.toLowerCase()==it.k}
+  else if(L.id=='simbolo'){if(['Shift','Control','Alt','AltGraph','Meta','CapsLock'].includes(e.key))return;e.preventDefault();ok=e.key==it.k}
+  else{if(it.k=='AltGraph'&&e.key=='Control')return;e.preventDefault();ok=e.key==it.k}
+  flash(e.code,ok?'ok':'no');ok?hit():wrong('Não é essa. Tente de novo!')};
+ document.addEventListener('keydown',kd);clean=()=>{clearInterval(tmr);document.removeEventListener('keydown',kd)};
+ next();
 }
 
-function iniciarCronometro() {
-    tempoInicioFrase = Date.now();
-    pararCronometro();
-    intervaloCronometro = setInterval(() => {
-        const tempoDecorrido = (Date.now() - tempoInicioFrase) / 1000;
-        document.getElementById("cronometro").textContent = `⏱️ ${tempoDecorrido.toFixed(1)}s`;
-    }, 100);
+/* ---------- VELOCIDADE (cronômetro) ---------- */
+function runSpeed(){
+ const N=5,S=sh(SENT).slice(0,N);let i=0,chars=0,keys=0,errs=0,prev=0,t0=0,ts=0,times=[],tgt,t=null;
+ show(`<div class="card">${hud()}<div class="stats"><div><div class="clock" id="tm2">0.0</div>cronômetro (s)</div><div><div class="clock" id="wpm">0</div>PPM</div><div><div class="clock" id="acc">100%</div>precisão</div><div><div class="clock" id="err">0</div>erros</div></div>
+ <p class="sub" id="pg"></p><div class="tgt" id="tg"></div><input type="text" id="inp" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Digite a frase"><p class="sub">O cronômetro começa na primeira letra. Para avançar, a frase precisa ficar igual. Erros corrigidos continuam contando (−2 pts cada).</p>${vk()}</div>`);G.run=true;upd();
+ const inp=$('#inp');inp.focus();inp.onpaste=e=>e.preventDefault();
+ const norm=()=>inp.value.normalize('NFC'),el=()=>t0?(Date.now()-t0)/1000:0;
+ const cmp=v=>{let g=0;for(let k=0;k<v.length;k++)if(v[k]==tgt[k])g++;return g};
+ function paint(){const v=norm();$('#tg').innerHTML=[...tgt].map((c,k)=>k<v.length?`<span class="${v[k]==c?'g':'r'}">${esc(c)}</span>`:esc(c)).join('')}
+ function stats(){const e=el(),g=chars+cmp(norm());if(e>1)$('#wpm').textContent=Math.round(g/5/(e/60));$('#acc').textContent=keys?Math.round((keys-errs)/keys*100)+'%':'100%';$('#err').textContent=errs}
+ function tick(){const e=el().toFixed(1);$('#tm2').textContent=e;const tm=$('#tm');if(tm)tm.textContent=e;stats()}
+ function nextS(){tgt=S[i];inp.value='';prev=0;ts=0;$('#pg').textContent=`Frase ${i+1} de ${N}`;paint()}
+ inp.oninput=e=>{if(e.isComposing)return;const v=norm();if(!t0){t0=Date.now();t=setInterval(tick,100)}if(!ts)ts=Date.now();
+  for(let k=prev;k<v.length;k++){keys++;if(v[k]!==tgt[k]){errs++;const c=tgt[k]||'';if(c.trim())G.missK[c]=(G.missK[c]||0)+1}}prev=v.length;paint();stats();
+  if(v===tgt){chars+=tgt.length;times.push((Date.now()-ts)/1000);snd(520,.06);i++;if(i>=N)return end();nextS()}};
+ function end(){clearInterval(t);const e=el(),wpm=Math.round(chars/5/(e/60)),acc=keys?Math.round((keys-errs)/keys*100):100,pen=errs*2;
+  const p=Math.max(0,Math.min(200,Math.round(wpm/30*200))-pen);G.score+=p;
+  const f1=x=>x.toFixed(1).replace('.',','),avg=f1(times.reduce((a,b)=>a+b,0)/times.length);
+  let fk=wpm>=30?'Excelente! Você digita com muita velocidade.':wpm>=20?'Muito bom! Você está no caminho certo.':wpm>=10?'Bom começo! Treine um pouco todos os dias.':'Vá com calma e continue treinando: a velocidade vem com a prática.';
+  if(acc<90)fk+=' Cuidado com os erros: acerte as letras antes de acelerar.';else if(acc>=97)fk+=' Sua precisão foi ótima!';
+  done(p,`<b>${wpm} palavras por minuto</b> · precisão ${acc}%<br>Tempo total: <b>${f1(e)} s</b> · Tempo médio por frase: <b>${avg} s</b><br>Erros: ${errs} (−${pen} pts)<br>${fk}`)}
+ clean=()=>clearInterval(t);nextS();
 }
-
-function pararCronometro() {
-    clearInterval(intervaloCronometro);
-}
-
-document.addEventListener("keydown", e => {
-    if(!ativo) return;
-    
-    const statusMsg = document.getElementById("status-msg");
-    let lista = (fase === 1 ? teclas : (fase === 2 ? atalhos : (fase === 3 ? simbolos : frases)));
-    const alvo = lista[indice];
-
-    if (fase === 4) {
-        if (["Control", "Alt", "AltGraph", "CapsLock", "Escape", "Shift"].includes(e.key)) return;
-        e.preventDefault();
-
-        if (e.key === "Backspace") {
-            digitacaoAtual = digitacaoAtual.slice(0, -1);
-        } else if (e.key.length === 1) {
-            const letraDigitada = e.key;
-            const proximaLetraCorreta = alvo.texto.charAt(digitacaoAtual.length);
-
-            if (letraDigitada === proximaLetraCorreta) {
-                digitacaoAtual += letraDigitada;
-                if (digitacaoAtual === alvo.texto) {
-                    pararCronometro();
-                    const tempoGasto = (Date.now() - tempoInicioFrase) / 1000;
-                    temposFase4.push(tempoGasto);
-                    processarResposta(true);
-                }
-            } else {
-                pontos = Math.max(0, pontos - 2);
-                statusMsg.textContent = "❌ TECLA ERRADA!";
-                statusMsg.className = "status erro";
-                setTimeout(() => statusMsg.textContent = "", 500);
-            }
-        }
-        atualizar();
-        return;
-    }
-
-    if(fase === 2){
-        e.preventDefault();
-        const apertouComandoCerto = (alvo.ctrl && e.key === "Control") || (alvo.alt && e.key === "Alt");
-        if (!comandoPressionado) {
-            if (apertouComandoCerto) { comandoPressionado = true; statusMsg.textContent = "⌨️ PRÓXIMA TECLA..."; return; }
-            else if (!["Control", "Alt", "Shift", "AltGraph"].includes(e.key)) processarResposta(false);
-        } else {
-            if (e.key.toLowerCase() === alvo.key.toLowerCase()) { comandoPressionado = false; processarResposta(true); }
-            else if (!["Control", "Alt", "Shift", "AltGraph"].includes(e.key)) { comandoPressionado = false; processarResposta(false); }
-        }
-    } 
-    else if (fase === 3) {
-        if (e.key === "Shift") return;
-        e.preventDefault();
-        if (e.shiftKey && e.key === alvo.key) processarResposta(true);
-        else processarResposta(false);
-    }
-    else {
-        const modificadores = ["Shift", "Control", "Alt", "CapsLock"];
-        if (modificadores.includes(e.key) && alvo.key !== e.key) return;
-        e.preventDefault();
-        const ehAltGr = (alvo.key === "AltGraph" && (e.key === "AltGraph" || e.key === "Alt"));
-        const teclaNormal = (e.key === alvo.key);
-        if (teclaNormal || ehAltGr) {
-            processarResposta(true);
-        } else {
-            processarResposta(false);
-        }
-    }
-});
-
-function processarResposta(acertou) {
-    const statusMsg = document.getElementById("status-msg");
-    if(acertou){
-        pontos += 10;
-        statusMsg.textContent = "✅ CORRETO!";
-        statusMsg.className = "status correto";
-        if (fase === 4) digitacaoAtual = "";
-        indice++;
-        setTimeout(next, 600);
-    } else {
-        vidas--;
-        pontos = Math.max(0, pontos - 5);
-        comandoPressionado = false;
-        statusMsg.textContent = "❌ INCORRETO!";
-        statusMsg.className = "status erro";
-        if(vidas <= 0) final(false);
-        else atualizar();
-    }
-}
-
-function mostrarAviso(texto) {
-    ativo = false;
-    pararCronometro();
-    const aviso = document.getElementById("aviso-fase");
-    aviso.textContent = texto;
-    aviso.style.display = "block";
-    setTimeout(() => { 
-        aviso.style.display = "none"; 
-        ativo = true; 
-        if(fase === 4) iniciarCronometro();
-        atualizar(); 
-    }, 1800);
-}
-
-function next(){
-    document.getElementById("status-msg").textContent = "";
-    if(fase === 1 && indice === teclas.length) { fase = 2; indice = 0; mostrarAviso("🚀 FASE 2: ATALHOS"); return; }
-    else if(fase === 2 && indice === atalhos.length) { fase = 3; indice = 0; mostrarAviso("✨ FASE 3: SÍMBOLOS"); return; }
-    else if(fase === 3 && indice === simbolos.length) { fase = 4; indice = 0; mostrarAviso("⌨️ FASE 4: VELOCIDADE"); return; }
-    else if(fase === 4 && indice === frases.length) { final(true); return; }
-    if(fase === 4) iniciarCronometro();
-    atualizar();
-}
-
-function final(terminouComSucesso){
-    ativo = false;
-    pararCronometro();
-    const situacao = document.getElementById("situacao-txt");
-    const totalMaximo = (teclasOrig.length + atalhosOrig.length + simbolosOrig.length + frasesOrig.length) * 10;
-    
-    let mediaVelocidade = 0;
-    if (temposFase4.length > 0) {
-        const soma = temposFase4.reduce((a, b) => a + b, 0);
-        mediaVelocidade = (soma / temposFase4.length).toFixed(2);
-    }
-
-    situacao.innerHTML = `
-        <div style="width: 100%;">
-            <div style="color: ${terminouComSucesso ? '#10b981' : '#ef4444'}; font-weight: 900; font-size: 28px; margin-bottom: 5px;">
-                ${terminouComSucesso ? '🏆 DESAFIO CONCLUÍDO!' : '💀 GAME OVER!'}
-            </div>
-            <div class="score-final" style="font-size:22px; color:var(--primary)">Score Final: ${pontos} / ${totalMaximo}</div>
-            ${terminouComSucesso ? `
-                <div style="background: #f1f5f9; padding: 12px; border-radius: 10px; margin-top: 10px;">
-                    <div style="color: #64748b; font-size: 14px;">Média de tempo por frase:</div>
-                    <div style="color: var(--secondary); font-size: 20px; font-weight: 900;">${mediaVelocidade} segundos</div>
-                </div>
-            ` : ''}
-            <button class="btn-acao" style="margin-top:15px" onclick="iniciarJogo()">RECOMEÇAR</button>
-        </div>
-    `;
-}
-</script>
-</body>
-</html>
+home();
+</script></body></html>
